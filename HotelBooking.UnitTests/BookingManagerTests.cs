@@ -24,6 +24,7 @@ namespace HotelBooking.UnitTests
             Assert.Throws<ArgumentException>(() => bookingManager.FindAvailableRoom(date, date));
         }
 
+        //test
         [Fact]
         public void FindAvailableRoom_RoomAvailable_RoomIdNotMinusOne()
         {
