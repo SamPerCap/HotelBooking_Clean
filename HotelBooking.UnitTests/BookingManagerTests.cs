@@ -10,8 +10,11 @@ namespace HotelBooking.UnitTests
         private IBookingManager bookingManager;
 
         public BookingManagerTests(){
+            /////  This is an existing booking  /////
             DateTime start = DateTime.Today.AddDays(10);
             DateTime end = DateTime.Today.AddDays(20);
+            ///// ///// ///// ///// ///// ///// /////
+
             IRepository<Booking> bookingRepository = new FakeBookingRepository(start, end);
             IRepository<Room> roomRepository = new FakeRoomRepository();
             bookingManager = new BookingManager(bookingRepository, roomRepository);
@@ -35,5 +38,64 @@ namespace HotelBooking.UnitTests
             Assert.NotEqual(-1, roomId);
         }
 
+        [Fact]
+        public void FindAvailableRoom_StartDateBeforeEndDateOverlap_ThrowsArgumentException()
+        {
+            // Start date 2 days before the existing booking
+            var startDate = DateTime.Today.AddDays(8);
+            // End date 3 days into the existing booking
+            var endDate = DateTime.Today.AddDays(11);
+            
+            // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
+            Assert.Throws<ArgumentException>(() =>
+            {
+                bookingManager.FindAvailableRoom(startDate, endDate);
+            });
+        }
+
+        [Fact]
+        public void FindAvailableRoom_StartDateOverlapsEndDateAfter_ThrowsArgumentException()
+        {
+            // Start date 2 days before existing booking ends
+            var startDate = DateTime.Today.AddDays(18);
+            // End date 3 days afetr existing booking stops
+            var endDate = DateTime.Today.AddDays(23);
+            
+            // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
+            Assert.Throws<ArgumentException>(() =>
+            {
+                bookingManager.FindAvailableRoom(startDate, endDate);
+            });
+        }
+
+        [Fact]
+        public void FindAvailableRoom_StartAndEndOverlapsExistingBooking_ThrowsArgumentException()
+        {
+            // Start date 2 days before the existing booking
+            var startDate = DateTime.Today.AddDays(8);
+            // End date 2 days after the existing booking
+            var endDate = DateTime.Today.AddDays(22);
+            
+            // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
+            Assert.Throws<ArgumentException>(() =>
+            {
+                bookingManager.FindAvailableRoom(startDate, endDate);
+            });
+        }
+        
+        [Fact]
+        public void FindAvailableRoom_StartAndEndDatesAreInsideExistingBooking_ThrowsArgumentException()
+        {
+            // Start date 2 days before the existing booking
+            var startDate = DateTime.Today.AddDays(12);
+            // End date 2 days after the existing booking
+            var endDate = DateTime.Today.AddDays(18);
+            
+            // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
+            Assert.Throws<ArgumentException>(() =>
+            {
+                bookingManager.FindAvailableRoom(startDate, endDate);
+            });
+        }
     }
 }
