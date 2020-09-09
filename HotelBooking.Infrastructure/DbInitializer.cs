@@ -28,7 +28,8 @@ namespace HotelBooking.Infrastructure
             List<Customer> customers = new List<Customer>
             {
                 new Customer { Name="John Smith", Email="js@gmail.com" },
-                new Customer { Name="Jane Doe", Email="jd@gmail.com" }
+                new Customer { Name="Jane Doe", Email="jd@gmail.com" },
+                new Customer { Name="Sam testing", Email="sm@gmail.com" }
             };
 
             List<Room> rooms = new List<Room>
