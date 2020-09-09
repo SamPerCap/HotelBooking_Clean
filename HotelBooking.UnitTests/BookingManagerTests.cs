@@ -9,7 +9,8 @@ namespace HotelBooking.UnitTests
     {
         private IBookingManager bookingManager;
 
-        public BookingManagerTests(){
+        public BookingManagerTests()
+        {
             /////  This is an existing booking  /////
             DateTime start = DateTime.Today.AddDays(10);
             DateTime end = DateTime.Today.AddDays(20);
@@ -45,7 +46,7 @@ namespace HotelBooking.UnitTests
             var startDate = DateTime.Today.AddDays(8);
             // End date 3 days into the existing booking
             var endDate = DateTime.Today.AddDays(11);
-            
+
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
             Assert.Throws<ArgumentException>(() =>
             {
@@ -60,7 +61,7 @@ namespace HotelBooking.UnitTests
             var startDate = DateTime.Today.AddDays(18);
             // End date 3 days afetr existing booking stops
             var endDate = DateTime.Today.AddDays(23);
-            
+
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
             Assert.Throws<ArgumentException>(() =>
             {
@@ -75,14 +76,14 @@ namespace HotelBooking.UnitTests
             var startDate = DateTime.Today.AddDays(8);
             // End date 2 days after the existing booking
             var endDate = DateTime.Today.AddDays(22);
-            
+
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
             Assert.Throws<ArgumentException>(() =>
             {
                 bookingManager.FindAvailableRoom(startDate, endDate);
             });
         }
-        
+
         [Fact]
         public void FindAvailableRoom_StartAndEndDatesAreInsideExistingBooking_ThrowsArgumentException()
         {
@@ -90,7 +91,7 @@ namespace HotelBooking.UnitTests
             var startDate = DateTime.Today.AddDays(12);
             // End date 2 days after the existing booking
             var endDate = DateTime.Today.AddDays(18);
-            
+
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
             Assert.Throws<ArgumentException>(() =>
             {
@@ -98,6 +99,22 @@ namespace HotelBooking.UnitTests
             });
 
             // this is a comment
+        }
+
+        [Fact]
+        public void BookRoomAvailable_StartAndEndDatesAreInUnbookedPeriod_ExpectNotMinusOne()
+        {
+            //Arrange
+            //Start date 1 day after today's date
+            var startDate = DateTime.Today.AddDays(10);
+            //End date 2 days after today's date
+            var endDate = DateTime.Today.AddDays(13);
+
+            //Act
+            var actual = bookingManager.FindAvailableRoom(startDate, endDate);
+
+            //Assert
+            Assert.True(actual > -1);
         }
     }
 }
