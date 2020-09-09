@@ -96,6 +96,8 @@ namespace HotelBooking.UnitTests
             {
                 bookingManager.FindAvailableRoom(startDate, endDate);
             });
+
+            // this is a comment
         }
     }
 }
