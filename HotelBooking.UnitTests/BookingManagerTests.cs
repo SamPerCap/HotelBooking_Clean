@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using HotelBooking.Core;
 using HotelBooking.UnitTests.Fakes;
 using Xunit;
@@ -119,7 +121,28 @@ namespace HotelBooking.UnitTests
         {
             //startdate, enddate, expected result
             //dates are in days from today
+            
+        }
+    }
+    
+    /// <summary>
+    /// Example of Class Data, following Henrik's example
+    /// </summary>
+    internal class GetFullyOccupiedDateTestDataEnumerable : IEnumerable<object[]>
+    {
+        private readonly List<object[]> list = new List<object[]>
+        {
+            new object[]{0,0,0},
+        };
         
+        public IEnumerator<object[]> GetEnumerator()
+        {
+            return list.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
