@@ -130,9 +130,6 @@ namespace HotelBooking.UnitTests
             //Assert
             Assert.True(actual > -1);
         }
-
-
-
         [Theory]
         [ClassData(typeof(GetFullyOccupiedDateTestData))]
         public void GetFullyOccupiedBookings_OnlyReturnBookedRooms(int startDate, int endDate, int expectedOccupiedDates)
@@ -205,8 +202,11 @@ namespace HotelBooking.UnitTests
     {
         public GetFullyOccupiedDateTestData()
         {
+
             //startdate, enddate, expected result
             //dates are in days from today
+            Add(20, 23, 1); // available and successfully book 1 
+            Add(10, 19, 10); // dates occupied between these dates
 
         }
     }
