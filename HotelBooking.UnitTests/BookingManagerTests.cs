@@ -129,8 +129,25 @@ namespace HotelBooking.UnitTests
             //Assert
             Assert.True(actual > -1);
         }
+
+
+
+        [Theory]
+        [ClassData(typeof(GetFullyOccupiedDateTestData))]
+        public void GetFullyOccupiedBookings_OnlyReturnBookedRooms(int startDate, int endDate, int expectedOccupiedDates)
+        {
+
+            //Arrange
+            //Act
+            var fullyOccupiedDates = bookingManager.GetFullyOccupiedDates(DateTime.Today.AddDays(startDate), DateTime.Today.AddDays(endDate));
+
+            //Assert
+            Assert.Equal(expectedOccupiedDates, fullyOccupiedDates.Count);
+        }
     }
 
+
+    //Internal classes
     internal class CreateBookTest : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
@@ -183,4 +200,35 @@ namespace HotelBooking.UnitTests
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
+    internal class GetFullyOccupiedDateTestData : TheoryData<int, int, int>
+    {
+        public GetFullyOccupiedDateTestData()
+        {
+            //startdate, enddate, expected result
+            //dates are in days from today
+
+        }
+    }
+
+    /// <summary>
+    /// Example of Class Data, following Henrik's example
+    /// </summary>
+    internal class GetFullyOccupiedDateTestDataEnumerable : IEnumerable<object[]>
+    {
+        private readonly List<object[]> list = new List<object[]>
+        {
+            new object[]{0,0,0},
+        };
+
+        public IEnumerator<object[]> GetEnumerator()
+        {
+            return list.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }
+
