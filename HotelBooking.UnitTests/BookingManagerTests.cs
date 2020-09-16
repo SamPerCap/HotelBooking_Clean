@@ -119,13 +119,7 @@ namespace HotelBooking.UnitTests
         {
             //startdate, enddate, expected result
             //dates are in days from today
-            Add(-5, -1, 0);
-            Add(0, 3, 0);
-            Add(9, 11, 2); 
-            Add(10, 20, 11);
-            Add(17, 19, 3);
-            Add(19, 25, 2);
-            Add(21, 23, 0);
+        
         }
     }
 }
