@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using HotelBooking.Core;
 using HotelBooking.UnitTests.Fakes;
 using Xunit;
@@ -101,6 +103,17 @@ namespace HotelBooking.UnitTests
             // this is a comment
         }
 
+        [Theory]
+        [ClassData(typeof(CreateBookTest))]
+        public void CreateBook_StartAndEndDateAreAvailable_ExpectTrue(DateTime startDate, DateTime endDate, bool expected)
+        {
+            Booking bking = new Booking();
+            bking.StartDate = startDate;
+            bking.EndDate = endDate;
+            var result = bookingManager.CreateBooking(bking);
+            Assert.Equal(expected, result);
+        }
+
         [Fact]
         public void BookRoomAvailable_StartAndEndDatesAreInUnbookedPeriod_ExpectNotMinusOne()
         {
@@ -117,4 +130,57 @@ namespace HotelBooking.UnitTests
             Assert.True(actual > -1);
         }
     }
+
+    internal class CreateBookTest : IEnumerable<object[]>
+    {
+        public IEnumerator<object[]> GetEnumerator()
+        {
+            DateTime today = DateTime.Today;
+            //Booking = 10-20
+            yield return new object[]
+            {
+                today.AddDays(5),
+                today.AddDays(9),
+                true
+            };
+            yield return new object[]
+            {
+                today.AddDays(21),
+                today.AddDays(22),
+                true
+            };
+            yield return new object[] {
+                today.AddDays(11),
+                today.AddDays(18),
+                false
+            };
+            yield return new object[]
+            {
+                today.AddDays(5),
+                today.AddDays(11),
+                false
+            };
+            yield return new object[]
+            {
+                today.AddDays(18),
+                today.AddDays(22),
+                false
+            };
+            yield return new object[]
+            {
+                today.AddDays(3),
+                today.AddDays(10),
+                true
+            };
+            yield return new object[] {
+                today.AddDays(20),
+                today.AddDays(25),
+                true
+            };
+
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
 }
