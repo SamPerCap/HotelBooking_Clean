@@ -70,13 +70,12 @@ namespace HotelBooking.UnitTests
             // Start date 6 days before the existing booking
             var startDate = DateTime.Today.AddDays(6);
             // End date 10 days into the existing booking
-            var endDate = DateTime.Today.AddDays(10);
+            var endDate = DateTime.Today.AddDays(12);
 
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
-            Assert.Throws<ArgumentException>(() =>
-            {
-                bookingManager.FindAvailableRoom(startDate, endDate);
-            });
+            int roomId = bookingManager.FindAvailableRoom(startDate, endDate);
+            // Assert
+            Assert.Equal(-1, roomId);
         }
 
         [Fact]
@@ -88,10 +87,9 @@ namespace HotelBooking.UnitTests
             var endDate = DateTime.Today.AddDays(23);
 
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
-            Assert.Throws<ArgumentException>(() =>
-            {
-                bookingManager.FindAvailableRoom(startDate, endDate);
-            });
+            int roomId = bookingManager.FindAvailableRoom(startDate, endDate);
+            // Assert
+            Assert.Equal(-1, roomId);
         }
 
         [Fact]
