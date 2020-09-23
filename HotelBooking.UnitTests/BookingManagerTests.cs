@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using HotelBooking.Core;
 using HotelBooking.UnitTests.Fakes;
+using Moq;
 using Xunit;
 
 namespace HotelBooking.UnitTests
@@ -18,8 +19,29 @@ namespace HotelBooking.UnitTests
             DateTime end = DateTime.Today.AddDays(20);
             ///// ///// ///// ///// ///// ///// /////
 
-            IRepository<Booking> bookingRepository = new FakeBookingRepository(start, end);
-            IRepository<Room> roomRepository = new FakeRoomRepository();
+            var bookings = new List<Booking>
+            {
+                new Booking { Id=1, StartDate=DateTime.Today.AddDays(10), EndDate=DateTime.Today.AddDays(20), IsActive=true, CustomerId=1, RoomId=1 },
+                new Booking { Id=2, StartDate=DateTime.Today.AddDays(10), EndDate=DateTime.Today.AddDays(20), IsActive=true, CustomerId=2, RoomId=2 },
+            };
+            
+            var mockBookingRepository = new Mock<IRepository<Booking>>();
+            mockBookingRepository
+                .Setup(x => x.GetAll())
+                .Returns(bookings);
+
+            var rooms = new List<Room>
+            {
+                new Room { Id=1, Description="A" },
+                new Room { Id=2, Description="B" },
+            };
+            var mockRoomRepository = new Mock<IRepository<Room>>();
+            mockRoomRepository
+                .Setup(x => x.GetAll())
+                .Returns(rooms);
+
+            var bookingRepository = mockBookingRepository.Object;
+            var roomRepository = mockRoomRepository.Object;
             bookingManager = new BookingManager(bookingRepository, roomRepository);
         }
 
