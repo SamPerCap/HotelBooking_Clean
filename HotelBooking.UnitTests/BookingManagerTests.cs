@@ -67,10 +67,10 @@ namespace HotelBooking.UnitTests
         [Fact]
         public void FindAvailableRoom_StartDateBeforeEndDateOverlap_ThrowsArgumentException()
         {
-            // Start date 2 days before the existing booking
-            var startDate = DateTime.Today.AddDays(8);
-            // End date 3 days into the existing booking
-            var endDate = DateTime.Today.AddDays(11);
+            // Start date 6 days before the existing booking
+            var startDate = DateTime.Today.AddDays(6);
+            // End date 10 days into the existing booking
+            var endDate = DateTime.Today.AddDays(10);
 
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
             Assert.Throws<ArgumentException>(() =>
@@ -97,33 +97,29 @@ namespace HotelBooking.UnitTests
         [Fact]
         public void FindAvailableRoom_StartAndEndOverlapsExistingBooking_ThrowsArgumentException()
         {
-            // Start date 2 days before the existing booking
+            // Start date 8 days before the existing booking
             var startDate = DateTime.Today.AddDays(8);
-            // End date 2 days after the existing booking
+            // End date 22 days after the existing booking
             var endDate = DateTime.Today.AddDays(22);
 
-            // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
-            Assert.Throws<ArgumentException>(() =>
-            {
-                bookingManager.FindAvailableRoom(startDate, endDate);
-            });
+            // Expect the FindAvailableRoom and return false
+            var actual = bookingManager.FindAvailableRoom(startDate, endDate);
+
+            Assert.True(actual.Equals(-1));
         }
 
         [Fact]
         public void FindAvailableRoom_StartAndEndDatesAreInsideExistingBooking_ThrowsArgumentException()
         {
-            // Start date 2 days before the existing booking
-            var startDate = DateTime.Today.AddDays(12);
-            // End date 2 days after the existing booking
+            // Start date 11 days before the existing booking
+            var startDate = DateTime.Today.AddDays(11);
+            // End date 18 days after the existing booking
             var endDate = DateTime.Today.AddDays(18);
-
-            // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
-            Assert.Throws<ArgumentException>(() =>
-            {
-                bookingManager.FindAvailableRoom(startDate, endDate);
-            });
-
-            // this is a comment
+            
+            // Expect the FindAvailableRoom and throw no available (false (-1))
+            var actual = bookingManager.FindAvailableRoom(startDate, endDate);
+            
+            Assert.True(actual.Equals(-1));
         }
 
         [Theory]
@@ -142,9 +138,9 @@ namespace HotelBooking.UnitTests
         {
             //Arrange
             //Start date 1 day after today's date
-            var startDate = DateTime.Today.AddDays(10);
-            //End date 2 days after today's date
-            var endDate = DateTime.Today.AddDays(13);
+            var startDate = DateTime.Today.AddDays(1);
+            //End date 3 days after today's date
+            var endDate = DateTime.Today.AddDays(3);
 
             //Act
             var actual = bookingManager.FindAvailableRoom(startDate, endDate);
@@ -174,41 +170,49 @@ namespace HotelBooking.UnitTests
         {
             DateTime today = DateTime.Today;
             //Booking = 10-20
+
+            // Starts and end before the booking dates
             yield return new object[]
             {
                 today.AddDays(5),
                 today.AddDays(9),
                 true
             };
+            // Starts and end after the booking dates
             yield return new object[]
             {
                 today.AddDays(21),
                 today.AddDays(22),
                 true
             };
+            // Start and end inside the booking days
             yield return new object[] {
                 today.AddDays(11),
                 today.AddDays(18),
                 false
             };
+            // Start out of the booking days and ends inside it
             yield return new object[]
             {
                 today.AddDays(5),
                 today.AddDays(11),
                 false
             };
+            // Starts inside the booking days and ends out
             yield return new object[]
             {
                 today.AddDays(18),
                 today.AddDays(22),
                 false
             };
+            // It ends the same day the booking starts
             yield return new object[]
             {
                 today.AddDays(3),
                 today.AddDays(10),
                 true
             };
+            // Starts the same day the booking ends. Ends later
             yield return new object[] {
                 today.AddDays(20),
                 today.AddDays(25),
