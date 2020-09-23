@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using HotelBooking.Core;
+using HotelBooking.Infrastructure.Repositories;
 using HotelBooking.UnitTests.Fakes;
+using HotelBooking.WebApi.Controllers;
 using Moq;
 using Xunit;
 
@@ -11,6 +13,8 @@ namespace HotelBooking.UnitTests
     public class BookingManagerTests
     {
         private IBookingManager bookingManager;
+        private Mock<IRepository<Booking>> mockBookingRepository;
+        private RoomsController rController;
 
         public BookingManagerTests()
         {
@@ -25,10 +29,16 @@ namespace HotelBooking.UnitTests
                 new Booking { Id=2, StartDate=DateTime.Today.AddDays(10), EndDate=DateTime.Today.AddDays(20), IsActive=true, CustomerId=2, RoomId=2 },
             };
             
-            var mockBookingRepository = new Mock<IRepository<Booking>>();
+            mockBookingRepository = new Mock<IRepository<Booking>>();
             mockBookingRepository
                 .Setup(x => x.GetAll())
                 .Returns(bookings);
+            mockBookingRepository
+                .Setup(x => x.Get(It.IsAny<int>()))
+                .Returns(bookings[0]);
+            mockBookingRepository
+                .Setup(x => x.Get(It.IsInRange<int>(int.MinValue, 0, Moq.Range.Inclusive)))
+                .Throws<ArgumentOutOfRangeException>();
 
             var rooms = new List<Room>
             {
@@ -43,6 +53,19 @@ namespace HotelBooking.UnitTests
             var bookingRepository = mockBookingRepository.Object;
             var roomRepository = mockRoomRepository.Object;
             bookingManager = new BookingManager(bookingRepository, roomRepository);
+
+            rController = new RoomsController(roomRepository);
+        }
+
+        [Fact]
+        public void GetAllRooms()
+        {
+            var result = rController.Get() as List<Room>;
+            var nOfBookings = result.Count;
+
+            Assert.Equal(2, nOfBookings);
+
+            mockBookingRepository.Verify(x => x.GetAll(), Times.Once);
         }
 
         [Fact]
