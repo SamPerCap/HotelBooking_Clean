@@ -11,6 +11,8 @@ namespace HotelBooking.UnitTests
     public class BookingManagerTests
     {
         private IBookingManager bookingManager;
+        private Mock<IRepository<Booking>> mockBookingRepository;
+        Mock<IRepository<Room>> mockRoomRepository;
 
         public BookingManagerTests()
         {
@@ -24,8 +26,8 @@ namespace HotelBooking.UnitTests
                 new Booking { Id=1, StartDate=DateTime.Today.AddDays(10), EndDate=DateTime.Today.AddDays(20), IsActive=true, CustomerId=1, RoomId=1 },
                 new Booking { Id=2, StartDate=DateTime.Today.AddDays(10), EndDate=DateTime.Today.AddDays(20), IsActive=true, CustomerId=2, RoomId=2 },
             };
-            
-            var mockBookingRepository = new Mock<IRepository<Booking>>();
+
+            mockBookingRepository = new Mock<IRepository<Booking>>();
             mockBookingRepository
                 .Setup(x => x.GetAll())
                 .Returns(bookings);
@@ -35,7 +37,7 @@ namespace HotelBooking.UnitTests
                 new Room { Id=1, Description="A" },
                 new Room { Id=2, Description="B" },
             };
-            var mockRoomRepository = new Mock<IRepository<Room>>();
+            mockRoomRepository = new Mock<IRepository<Room>>();
             mockRoomRepository
                 .Setup(x => x.GetAll())
                 .Returns(rooms);
@@ -65,37 +67,35 @@ namespace HotelBooking.UnitTests
         }
 
         [Fact]
-        public void FindAvailableRoom_StartDateBeforeEndDateOverlap_ThrowsArgumentException()
+        public void FindAvailableRoom_StartDateBeforeEndDateOverlap_ExpectsNegativeOne()
         {
-            // Start date 6 days before the existing booking
+            // Start date 4 days before the existing booking
             var startDate = DateTime.Today.AddDays(6);
-            // End date 10 days into the existing booking
-            var endDate = DateTime.Today.AddDays(10);
+            // End date 2 days into the existing booking
+            var endDate = DateTime.Today.AddDays(12);
 
+            var actual = bookingManager.FindAvailableRoom(startDate, endDate);
+            
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
-            Assert.Throws<ArgumentException>(() =>
-            {
-                bookingManager.FindAvailableRoom(startDate, endDate);
-            });
+            Assert.Equal(-1, actual);
         }
 
         [Fact]
-        public void FindAvailableRoom_StartDateOverlapsEndDateAfter_ThrowsArgumentException()
+        public void FindAvailableRoom_StartDateOverlapsEndDateAfter_ExpectsNegativeOne()
         {
             // Start date 2 days before existing booking ends
             var startDate = DateTime.Today.AddDays(18);
-            // End date 3 days afetr existing booking stops
+            // End date 3 days after existing booking stops
             var endDate = DateTime.Today.AddDays(23);
 
             // Expect the FindAvailableRoom to throw an ArgumentException instead of returning an answer
-            Assert.Throws<ArgumentException>(() =>
-            {
-                bookingManager.FindAvailableRoom(startDate, endDate);
-            });
+            var actual = bookingManager.FindAvailableRoom(startDate, endDate);
+            
+            Assert.Equal(-1, actual);
         }
 
         [Fact]
-        public void FindAvailableRoom_StartAndEndOverlapsExistingBooking_ThrowsArgumentException()
+        public void FindAvailableRoom_StartAndEndOverlapsExistingBooking_ExpectsNegativeOne()
         {
             // Start date 8 days before the existing booking
             var startDate = DateTime.Today.AddDays(8);
@@ -111,9 +111,9 @@ namespace HotelBooking.UnitTests
         [Fact]
         public void FindAvailableRoom_StartAndEndDatesAreInsideExistingBooking_ThrowsArgumentException()
         {
-            // Start date 11 days before the existing booking
+            // Start date 1 days after the existing booking starts
             var startDate = DateTime.Today.AddDays(11);
-            // End date 18 days after the existing booking
+            // End date 2 days before the existing booking ends
             var endDate = DateTime.Today.AddDays(18);
             
             // Expect the FindAvailableRoom and throw no available (false (-1))
@@ -123,16 +123,35 @@ namespace HotelBooking.UnitTests
         }
 
         [Theory]
-        [ClassData(typeof(CreateBookTest))]
-        public void CreateBook_StartAndEndDateAreAvailable_ExpectTrue(DateTime startDate, DateTime endDate, bool expected)
+        [ClassData(typeof(CreateBookTestAdd))]
+        public void CreateBook_StartAndEndDateAreAvailable_CalledOnce(DateTime startDate, DateTime endDate)
         {
-            Booking bking = new Booking();
-            bking.StartDate = startDate;
-            bking.EndDate = endDate;
-            var result = bookingManager.CreateBooking(bking);
-            Assert.Equal(expected, result);
+            Booking booking = new Booking
+            {
+                StartDate = startDate, 
+                EndDate = endDate
+            };
+            var result = bookingManager.CreateBooking(booking);
+            
+            mockBookingRepository
+                .Verify(x=>x.Add(It.IsAny<Booking>()), Times.Once);
         }
 
+        [Theory]
+        [ClassData(typeof(CreateBookTestDoNotAdd))]
+        public void CreateBook_StartAndEndDateAreAvailable_CalledNever(DateTime startDate, DateTime endDate)
+        {
+            Booking booking = new Booking
+            {
+                StartDate = startDate, 
+                EndDate = endDate
+            };
+            var result = bookingManager.CreateBooking(booking);
+            
+            mockBookingRepository
+                .Verify(x=>x.Add(It.IsAny<Booking>()), Times.Never);
+        }
+        
         [Fact]
         public void BookRoomAvailable_StartAndEndDatesAreInUnbookedPeriod_ExpectNotMinusOne()
         {
@@ -146,7 +165,7 @@ namespace HotelBooking.UnitTests
             var actual = bookingManager.FindAvailableRoom(startDate, endDate);
 
             //Assert
-            Assert.True(actual > -1);
+            Assert.NotEqual(-1, actual);
         }
         [Theory]
         [ClassData(typeof(GetFullyOccupiedDateTestData))]
@@ -164,7 +183,7 @@ namespace HotelBooking.UnitTests
 
 
     //Internal classes
-    internal class CreateBookTest : IEnumerable<object[]>
+    internal class CreateBookTestAdd : IEnumerable<object[]>
     {
         public IEnumerator<object[]> GetEnumerator()
         {
@@ -175,55 +194,58 @@ namespace HotelBooking.UnitTests
             yield return new object[]
             {
                 today.AddDays(5),
-                today.AddDays(9),
-                true
+                today.AddDays(9)
             };
             // Starts and end after the booking dates
             yield return new object[]
             {
                 today.AddDays(21),
-                today.AddDays(22),
-                true
-            };
-            // Start and end inside the booking days
-            yield return new object[] {
-                today.AddDays(11),
-                today.AddDays(18),
-                false
-            };
-            // Start out of the booking days and ends inside it
-            yield return new object[]
-            {
-                today.AddDays(5),
-                today.AddDays(11),
-                false
-            };
-            // Starts inside the booking days and ends out
-            yield return new object[]
-            {
-                today.AddDays(18),
-                today.AddDays(22),
-                false
+                today.AddDays(22)
             };
             // It ends the same day the booking starts
             yield return new object[]
             {
                 today.AddDays(3),
-                today.AddDays(10),
-                true
+                today.AddDays(10)
             };
             // Starts the same day the booking ends. Ends later
             yield return new object[] {
                 today.AddDays(20),
-                today.AddDays(25),
-                true
+                today.AddDays(25)
             };
 
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+    internal class CreateBookTestDoNotAdd : IEnumerable<object[]>
+    {
+        public IEnumerator<object[]> GetEnumerator()
+        {
+            DateTime today = DateTime.Today;
+            //Booking = 10-20
 
+            // Start and end inside the booking days
+            yield return new object[] {
+                today.AddDays(11),
+                today.AddDays(18)
+            };
+            // Start out of the booking days and ends inside it
+            yield return new object[]
+            {
+                today.AddDays(5),
+                today.AddDays(11)
+            };
+            // Starts inside the booking days and ends out
+            yield return new object[]
+            {
+                today.AddDays(18),
+                today.AddDays(22)
+            };
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
     internal class GetFullyOccupiedDateTestData : TheoryData<int, int, int>
     {
         public GetFullyOccupiedDateTestData()
