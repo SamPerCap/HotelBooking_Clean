@@ -14,7 +14,7 @@ namespace HotelBooking.UnitTests
     {
         private IBookingManager bookingManager;
         private Mock<IRepository<Booking>> mockBookingRepository;
-        private RoomsController rController;
+        private BookingsController bController;
 
         public BookingManagerTests()
         {
@@ -28,7 +28,7 @@ namespace HotelBooking.UnitTests
                 new Booking { Id=1, StartDate=DateTime.Today.AddDays(10), EndDate=DateTime.Today.AddDays(20), IsActive=true, CustomerId=1, RoomId=1 },
                 new Booking { Id=2, StartDate=DateTime.Today.AddDays(10), EndDate=DateTime.Today.AddDays(20), IsActive=true, CustomerId=2, RoomId=2 },
             };
-            
+
             mockBookingRepository = new Mock<IRepository<Booking>>();
             mockBookingRepository
                 .Setup(x => x.GetAll())
@@ -50,24 +50,104 @@ namespace HotelBooking.UnitTests
                 .Setup(x => x.GetAll())
                 .Returns(rooms);
 
+            var customers = new List<Customer>
+            {
+                new Customer { Id= 1, Name="John Smith", Email="js@gmail.com" },
+                new Customer { Id= 2, Name="Jane Doe", Email="jd@gmail.com" },
+            };
+
+            var mockCustomerRepository = new Mock<IRepository<Customer>>();
+            mockCustomerRepository
+                .Setup(x => x.GetAll())
+                .Returns(customers);
+
             var bookingRepository = mockBookingRepository.Object;
             var roomRepository = mockRoomRepository.Object;
+            var customerRepository = mockCustomerRepository.Object;
             bookingManager = new BookingManager(bookingRepository, roomRepository);
-
-            rController = new RoomsController(roomRepository);
+            bController = new BookingsController(bookingRepository, roomRepository, customerRepository, bookingManager);
         }
 
         [Fact]
-        public void GetAllRooms()
+        public void GetAllBookings_ReturnsListWithCorrectNumberOfBokings_2()
         {
-            var result = rController.Get() as List<Room>;
-            var nOfBookings = result.Count;
+            var result = bController.Get() as List<Booking>;
+            var noOfBookings = result.Count;
 
-            Assert.Equal(2, nOfBookings);
-
-            mockBookingRepository.Verify(x => x.GetAll(), Times.Once);
+            Assert.Equal(2, noOfBookings);
         }
+        [Fact]
+        public void CreateBooking_StartAndEndAreBeforeBookedPeriod_ReturnOk()
+        {
+            var booking = new Booking()
+            {
+                StartDate = DateTime.Today.AddDays(1),
+                EndDate = DateTime.Today.AddDays(3)
+            };
+            var result = bController.Post(booking);
 
+            mockBookingRepository.Verify(x => x.Add(booking), Times.Once);
+        }
+        [Fact]
+        public void CreateBooking_StartAndEndAreInsideBookedPeriod_ReturnFalse()
+        {
+            var booking = new Booking()
+            {
+                StartDate = DateTime.Today.AddDays(11),
+                EndDate = DateTime.Today.AddDays(13)
+            };
+            var result = bController.Post(booking);
+
+            mockBookingRepository.Verify(x => x.Add(booking), Times.Never);
+        }
+        [Fact]
+        public void CreateBooking_StartIsBeforeBookedPeriodAndEndIsInside_ReturnFalse()
+        {
+            var booking = new Booking()
+            {
+                StartDate = DateTime.Today.AddDays(8),
+                EndDate = DateTime.Today.AddDays(13)
+            };
+            var result = bController.Post(booking);
+
+            mockBookingRepository.Verify(x => x.Add(booking), Times.Never);
+        }
+        [Fact]
+        public void CreateBooking_StartIsInsideAndEndIsAfterBookedPeriod_ReturnFalse()
+        {
+            var booking = new Booking()
+            {
+                StartDate = DateTime.Today.AddDays(11),
+                EndDate = DateTime.Today.AddDays(23)
+            };
+            var result = bController.Post(booking);
+
+            mockBookingRepository.Verify(x => x.Add(booking), Times.Never);
+        }
+        [Fact]
+        public void CreateBooking_StartTheSameDayEndsBookedPeriod_ReturnOk()
+        {
+            var booking = new Booking()
+            {
+                StartDate = DateTime.Today.AddDays(20),
+                EndDate = DateTime.Today.AddDays(21)
+            };
+            var result = bController.Post(booking);
+
+            mockBookingRepository.Verify(x => x.Add(booking), Times.Once);
+        }
+        [Fact]
+        public void CreateBooking_EndsTheSameDayStartsBookedPeriod_ReturnOk()
+        {
+            var booking = new Booking()
+            {
+                StartDate = DateTime.Today.AddDays(5),
+                EndDate = DateTime.Today.AddDays(10)
+            };
+            var result = bController.Post(booking);
+
+            mockBookingRepository.Verify(x => x.Add(booking), Times.Once);
+        }
         [Fact]
         public void FindAvailableRoom_StartDateNotInTheFuture_ThrowsArgumentException()
         {
@@ -136,10 +216,10 @@ namespace HotelBooking.UnitTests
             var startDate = DateTime.Today.AddDays(11);
             // End date 18 days after the existing booking
             var endDate = DateTime.Today.AddDays(18);
-            
+
             // Expect the FindAvailableRoom and throw no available (false (-1))
             var actual = bookingManager.FindAvailableRoom(startDate, endDate);
-            
+
             Assert.True(actual.Equals(-1));
         }
 
