@@ -86,7 +86,7 @@ namespace HotelBooking.UnitTests
             };
             var result = bController.Post(booking);
 
-            mockBookingRepository.Verify(x => x.Add(booking), Times.Once);
+            mockBookingRepository.Verify(x => x.Add(booking), Times.Never);
         }
         [Fact]
         public void CreateBooking_StartAndEndAreInsideBookedPeriod_ReturnFalse()
