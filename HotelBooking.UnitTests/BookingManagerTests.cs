@@ -68,6 +68,8 @@ namespace HotelBooking.UnitTests
             bController = new BookingsController(bookingRepository, roomRepository, customerRepository, bookingManager);
         }
 
+   
+
         [Fact]
         public void GetAllBookings_ReturnsListWithCorrectNumberOfBokings_2()
         {
@@ -99,6 +101,7 @@ namespace HotelBooking.UnitTests
             var result = bController.Post(booking);
 
             mockBookingRepository.Verify(x => x.Add(booking), Times.Never);
+       
         }
         [Fact]
         public void CreateBooking_StartIsBeforeBookedPeriodAndEndIsInside_ReturnFalse()
@@ -334,7 +337,6 @@ namespace HotelBooking.UnitTests
             //dates are in days from today
             Add(20, 23, 1); // available and successfully book 1 
             Add(10, 19, 10); // dates occupied between these dates
-
         }
     }
 
