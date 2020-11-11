@@ -4,28 +4,13 @@
 	I want to be told the sum of two numbers
 
 @mytag
-Scenario: Create BookingBB
-	Given the startDate is tomorrow-3
-	And the endDate is tomorrow-2
-	When the dates are check
-	Then the result should be true
+Scenario Outline:
+	Given the startDate which is tomorrow plus 0
+	And the endDate which is tomorrow plus 1
+	When the dates are check with the occupied range
+	Then the result should be returned
 
-Scenario: Create BookingAA
-	Given the startDate is tomorrow+4
-	And the endDate is tomorrow+5
-	When the dates are check
-	Then the result should be true
-
-Scenario: Create BookingBA
-	Given the startDate is tomorrow-3
-	And the endDate is tomorrow+5
-	When the dates are check
-	Then the result should be true
-
-Scenario: Create BookingBO
-	Given the startDate is tomorrow-3
-	And the endDate is tomorrow+2
-	When the dates are check
-	Then the result should be false
-
+Examples: 
+| startDate | endDate | Availability |
+| 0			|	+1    | Yes          |
 
