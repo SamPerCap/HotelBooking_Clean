@@ -6,8 +6,10 @@ namespace HotelBooking.UnitTests.SpecFlow.Step
     [Binding]
     public class BookRoomSteps
     {
-        DateTime Tomorrow = DateTime.Today.AddDays(1)
-            ;
+        DateTime Tomorrow = DateTime.Today.AddDays(1);
+        DateTime StartOccupiedRange = DateTime.Today.AddDays(3);
+        DateTime EndOccupiedRange = DateTime.Today.AddDays(6);
+
         [Given(@"the startDate which is tomorrow plus (.*)")]
         public void GivenTheStartDateWhichIsTomorrowPlus(int p0)
         {
