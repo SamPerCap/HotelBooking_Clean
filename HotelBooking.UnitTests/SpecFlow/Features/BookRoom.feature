@@ -5,12 +5,12 @@
 
 @mytag
 Scenario Outline:
-	Given the startDate which is tomorrow plus 0
-	And the endDate which is tomorrow plus 1
+	Given the start date which is tomorrow plus <startDate>
+	And the end date which is tomorrow plus <endDate>
 	When the dates are check with the occupied range
-	Then the result should be returned
+	Then the <Availability> should be returned
 
 Examples: 
 | startDate | endDate | Availability |
-| 0			|	+1    | Yes          |
+|	  0		|	 1    |    True      |
 
